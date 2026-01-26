@@ -33,6 +33,7 @@ from django.db.models import IntegerField
 from django.db.models import Max
 from django.db.models import Model
 from django.db.models import Q
+from django.db.models import Subquery
 from django.db.models import Sum
 from django.db.models import When
 from django.db.models.functions import Length
@@ -3014,11 +3015,13 @@ class CustomFieldViewSet(ModelViewSet):
             else (
                 Q(
                     fields__document__deleted_at__isnull=True,
-                    fields__document__id__in=get_objects_for_user_owner_aware(
-                        self.request.user,
-                        "documents.view_document",
-                        Document,
-                    ).values_list("id", flat=True),
+                    fields__document__id__in=Subquery(
+                        get_objects_for_user_owner_aware(
+                            self.request.user,
+                            "documents.view_document",
+                            Document,
+                        ).values_list("id"),
+                    ),
                 )
             )
         )

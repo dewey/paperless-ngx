@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.db.models import QuerySet
+from django.db.models import Subquery
 from guardian.core import ObjectPermissionChecker
 from guardian.models import GroupObjectPermission
 from guardian.shortcuts import assign_perm
@@ -140,11 +141,13 @@ def get_document_count_filter_for_user(user):
         return Q(documents__deleted_at__isnull=True)
     return Q(
         documents__deleted_at__isnull=True,
-        documents__id__in=get_objects_for_user_owner_aware(
-            user,
-            "documents.view_document",
-            Document,
-        ).values_list("id", flat=True),
+        documents__id__in=Subquery(
+            get_objects_for_user_owner_aware(
+                user,
+                "documents.view_document",
+                Document,
+            ).values_list("id"),
+        ),
     )
 
 
